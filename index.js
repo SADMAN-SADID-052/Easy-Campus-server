@@ -32,7 +32,8 @@ async function run() {
     
     // await client.connect();
     const eventCollection = client.db("eventManagement").collection("allEvents");
-
+    const userCollection = client.db("eventManagement").collection("users");
+    
     // add car : Post
 
       app.post("/addEvent", async (req, res) => {
@@ -60,6 +61,21 @@ app.get("/event", async (req, res) => {
     res.status(500).send({ message: "Failed to fetch events" });
   }
 });
+
+
+
+// user post in the database
+
+app.post("/users", async (req, res) => {
+  const user = req.body;
+  const result = await userCollection.insertOne(user);
+  res.send(result);
+});
+
+
+
+// post my event
+
 
 // PATCH: Join Event
 app.patch("/event/:id", async (req, res) => {
