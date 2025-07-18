@@ -31,36 +31,40 @@ async function run() {
 
     
     // await client.connect();
-    const eventCollection = client.db("eventManagement").collection("allEvents");
+    const eventCollection = client.db("eventManagement").collection("colleges");
     const userCollection = client.db("eventManagement").collection("users");
+    const admissionCollection = client.db("eventManagement").collection("admissions");
     
-    // add car : Post
+    
 
-      app.post("/addEvent", async (req, res) => {
-      const newEvent = req.body;
-      console.log(newEvent);
-      newEvent.addedAt = new Date().toISOString();
-      newEvent.datetime = new Date(req.body.datetime);
-
-
-      const result = await eventCollection.insertOne(newEvent);
-      res.send(result);
-    });
-
-    // get all events: GET
-app.get("/event", async (req, res) => {
+// get all Colleges
+app.get("/colleges", async (req, res) => {
   try {
-    const events = await eventCollection
-      .find()
-      .sort({ datetime: -1 }) // descending order: latest datetime first
-      .toArray();
+    const colleges = await eventCollection.find().toArray();
 
-    res.send({ events });
+    res.send(colleges);
   } catch (error) {
-    console.error("Error fetching events:", error);
-    res.status(500).send({ message: "Failed to fetch events" });
+    console.error("Error fetching colleges:", error);
+    res.status(500).send({ message: "Failed to fetch colleges" });
   }
 });
+
+app.get("/colleges/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const college = await eventCollection.findOne({ _id: new ObjectId(id) });
+
+    if (!college) {
+      return res.status(404).send({ message: "College not found" });
+    }
+
+    res.send(college);
+  } catch (error) {
+    console.error("Error fetching college details:", error);
+    res.status(500).send({ message: "Failed to fetch college details" });
+  }
+});
+
 
 
 
@@ -74,42 +78,23 @@ app.post("/users", async (req, res) => {
 
 
 
-// post my event
+// post Admission
 
 
-// PATCH: Join Event
-app.patch("/event/:id", async (req, res) => {
-  const { email } = req.body;
-  const { id } = req.params;
-
+app.post("/admissions", async (req, res) => {
   try {
-    const event = await eventCollection.findOne({ _id: new ObjectId(id) });
-    if (!event) return res.status(404).send({ message: "Event not found" });
-
-    if (event.joinedUsers?.includes(email)) {
-      return res.send({ success: false, message: "User already joined" });
-    }
-
-    const result = await eventCollection.updateOne(
-      { _id: new ObjectId(id) },
-      {
-        $inc: { attendeeCount: 1 },
-        $addToSet: { joinedUsers: email },
-      }
-    );
-
-    res.send({ success: true, result });
+    const data = req.body;
+    const result = await admissionCollection.insertOne(data);
+    res.send({ success: true, insertedId: result.insertedId });
   } catch (error) {
-    console.error("Join event error:", error);
-    res.status(500).send({ message: "Server error" });
+    console.error("Error saving admission:", error);
+    res.status(500).send({ success: false, message: "Failed to submit form" });
   }
 });
 
 
 
 
-    // Send a ping to confirm a successful connection
-    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
